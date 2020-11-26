@@ -1,6 +1,5 @@
 package uk.ac.ed.inf.aqmaps;
 
-import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 
 import java.awt.geom.Line2D;
@@ -44,7 +43,7 @@ public class Drone {
     this.flightPathWriter = flightPathWriter;
   }
 
-  public LineString collectReadings() {
+  public ArrayList<Point> collectReadings() {
     GeometryHelpers.setPolygonPointsArr(noFlyZonesArrayList);
     var pointList = new ArrayList<Point>();
     // add starting position
@@ -92,6 +91,7 @@ public class Drone {
         }
       } else {
         if (this.visitedSensors.size() == 34) {
+          this.visitedSensors.remove(33);
           break;
         }
         System.out.println("Going back to starting postion");
@@ -103,7 +103,7 @@ public class Drone {
       // decrement the number of moves
       this.movesLeft = this.movesLeft - 1;
     }
-    return LineString.fromLngLats(pointList);
+    return pointList;
   }
 
   private boolean closeToStart() {
@@ -114,7 +114,7 @@ public class Drone {
   private String closeToSensor() {
     var sensor = findNearestSensor();
     var dist = this.currentPosition.distance(sensor.getCoord());
-    if ((sensor.getLocation() == "" && dist < 0.0003) || dist < 0.0002) {
+    if ((sensor.getLocation().equals("") && dist < 0.0003) || dist < 0.0002) {
       sensor.setVisited(true);
       toVisit.remove(sensor);
       visitedSensors.add(sensor);

@@ -1,7 +1,5 @@
 package uk.ac.ed.inf.aqmaps;
 
-import com.mapbox.geojson.LineString;
-
 import java.awt.geom.Point2D;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,8 +34,11 @@ public class App {
 
       var drone = new Drone(randomState, 150, sensors, noFlyCoords, startingPosition, flightPathLogger);
       drone.getFlightPathWriter().close();
-      LineString lineString = drone.collectReadings();
-      System.out.println(lineString.toJson());
+      var movementPoints = drone.collectReadings();
+
+      var geojsonHelper = new GeoJsonHelper();
+      var featureCollection = geojsonHelper.createGeoJsonMap(drone.getVisitedSensors(), movementPoints);
+      System.out.println(featureCollection.toJson());
 
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();
