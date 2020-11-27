@@ -57,10 +57,12 @@ public class Drone {
                 var nextCoords = this.nextPosition(movementAngle);
                 var moveLine = new Line2D.Double(this.currentPosition, nextCoords);
 
+                // if intersectAngle == -1 then the move does not go over a no fly zone
+                // else we get the slope of the side we intersect to change our angle to
                 var intersectAngle = GeometryHelpers.polygonLineIntersects(moveLine);
-                var boundsAngle = GeometryHelpers.inPlayArea(nextCoords);
+                var inPlayArea = GeometryHelpers.inPlayArea(nextCoords);
 
-                if (intersectAngle == -1 && boundsAngle) {
+                if (intersectAngle == -1 && inPlayArea) {
                     var prevCoord = this.currentPosition;
                     // move to next position
                     this.setCurrentPosition(nextCoords);
@@ -77,8 +79,13 @@ public class Drone {
                         nearestSensor = this.findNearestSensor();
                         movementAngle = this.selectMovementAngle(nearestSensor);
                     }
-                } else if (intersectAngle != -1) {
-                    movementAngle = intersectAngle;
+                } else if (intersectAngle != -1 && inPlayArea) {
+                    if (intersectAngle == movementAngle) {
+                        var randomNum = this.RNG.nextInt(36);
+                        movementAngle = randomNum * 10;
+                    } else {
+                        movementAngle = intersectAngle;
+                    }
                     continue;
                 } else {
                     var randomNum = this.RNG.nextInt(36);
@@ -125,12 +132,9 @@ public class Drone {
     private Point2D.Double nextPosition(int movementAngle) {
         var radianAngle = Math.toRadians(movementAngle);
         // It moves by a distance of 0.0003 degrees
-        var p =
-                new Point2D.Double(
-                        this.currentPosition.getX() + 0.0003 * Math.cos(radianAngle),
-                        this.currentPosition.getY() + 0.0003 * Math.sin(radianAngle));
-//        System.out.println(currentPosition.toString() + " -> " + p.toString());
-        return p;
+        return new Point2D.Double(
+                this.currentPosition.getX() + 0.0003 * Math.cos(radianAngle),
+                this.currentPosition.getY() + 0.0003 * Math.sin(radianAngle));
     }
 
     private String closeToSensor() {

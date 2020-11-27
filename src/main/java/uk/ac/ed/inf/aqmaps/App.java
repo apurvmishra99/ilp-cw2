@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public class App {
     public static void main(String[] args) {
         if (args.length < 7) {
-            throw new IllegalArgumentException(" We need 6 arguments to proceed. ");
+            throw new IllegalArgumentException(" We need 6 arguments to proceed.");
         }
 
         var day = args[0];
