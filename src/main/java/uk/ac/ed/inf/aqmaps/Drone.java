@@ -80,7 +80,7 @@ public class Drone {
                         movementAngle = this.selectMovementAngle(nearestSensor);
                     }
                 } else if (intersectAngle != -1 && inPlayArea) {
-                    if (intersectAngle == movementAngle) {
+                    if (intersectAngle == movementAngle || this.prevMovementAngle == (intersectAngle + 180) % 360) {
                         var randomNum = this.RNG.nextInt(36);
                         movementAngle = randomNum * 10;
                     } else {
@@ -120,7 +120,7 @@ public class Drone {
                         this.currentPosition.getX(), this.currentPosition.getY(),
                         nearestSensorCoord.getX(), nearestSensorCoord.getY());
         var oppMovementAngle = (movementAngle + 180) % 360;
-        if (prevMovementAngle == oppMovementAngle) {
+        if (this.prevMovementAngle == oppMovementAngle) {
             // If the drone is stuck in an oscillation a random direction is selected
             var randomNum = this.RNG.nextInt(36);
             movementAngle = randomNum * 10;

@@ -6,7 +6,7 @@
 	<artifactId>aqmaps</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>heatmap</name>
+	<name>aqmaps</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
@@ -52,7 +52,7 @@
 					<archive>
 						<index>true</index>
 						<manifest>
-							<mainClass>uk.ac.ed.inf.heatmap.App</mainClass>
+							<mainClass>uk.ac.ed.inf.aqmaps.App</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
