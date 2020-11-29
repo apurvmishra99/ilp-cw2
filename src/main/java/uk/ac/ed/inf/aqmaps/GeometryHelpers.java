@@ -51,7 +51,7 @@ public class GeometryHelpers {
             radians += 2 * Math.PI;
         }
         var degrees = (int) Math.round(radians * 180 / Math.PI);
-        return (int) (Math.round(degrees / 10.0) * 10);
+        return (int) (Math.round(degrees / 10.0) * 10) % 360;
     }
 
     public static boolean inPlayArea(Point2D targetCoords) {
