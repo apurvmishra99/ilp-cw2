@@ -5,7 +5,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * The type App.
+ */
 public class App {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         if (args.length < 7) {
             throw new IllegalArgumentException(" We need 6 arguments to proceed.");

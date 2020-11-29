@@ -11,12 +11,27 @@ import java.util.ArrayList;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+/**
+ * The type Geo json helper.
+ */
 public class GeoJsonHelper {
 
+    /**
+     * The Range to rgb.
+     */
     private final NavigableMap<Integer, String> RANGE_TO_RGB;
+    /**
+     * The Range to symbol.
+     */
     private final NavigableMap<Integer, String> RANGE_TO_SYMBOL;
+    /**
+     * The Geojson map.
+     */
     private FeatureCollection geojsonMap;
 
+    /**
+     * Instantiates a new Geo json helper.
+     */
     public GeoJsonHelper() {
         RANGE_TO_RGB = new TreeMap<>();
         RANGE_TO_RGB.put(0, "#00ff00");
@@ -33,6 +48,11 @@ public class GeoJsonHelper {
         RANGE_TO_SYMBOL.put(128, "danger");
     }
 
+    /**
+     * Write to file.
+     *
+     * @param fileName the file name
+     */
     public void writeToFile(String fileName) {
         try (FileWriter file = new FileWriter(fileName)) {
             file.write(this.geojsonMap.toJson());
@@ -42,6 +62,12 @@ public class GeoJsonHelper {
         }
     }
 
+    /**
+     * Create geo json map.
+     *
+     * @param sensors       the sensors
+     * @param movePointList the move point list
+     */
     public void createGeoJsonMap(
             ArrayList<Sensor> sensors, ArrayList<Point> movePointList) {
         var mapFeatures = this.generateGeoJsonMarkers(sensors);
@@ -50,6 +76,12 @@ public class GeoJsonHelper {
         this.geojsonMap = FeatureCollection.fromFeatures(mapFeatures);
     }
 
+    /**
+     * Generate geo json markers array list.
+     *
+     * @param sensors the sensors
+     * @return the array list
+     */
     private ArrayList<Feature> generateGeoJsonMarkers(ArrayList<Sensor> sensors) {
         var features = new ArrayList<Feature>();
         for (Sensor sensor : sensors) {
@@ -60,7 +92,7 @@ public class GeoJsonHelper {
             var visited = sensor.isVisited();
 
             var reading = -1;
-            if (!readingString.equals("null")) {
+            if (!readingString.equals("null") && !readingString.isEmpty()) {
                 reading = (int) Math.round(Double.parseDouble(readingString));
             }
 
@@ -88,6 +120,12 @@ public class GeoJsonHelper {
         return features;
     }
 
+    /**
+     * Gets rgb string.
+     *
+     * @param num the num
+     * @return the rgb string
+     */
     private String getRGBString(int num) {
         String result;
         if (num < 0 || num > 255) {
@@ -98,6 +136,12 @@ public class GeoJsonHelper {
         return result;
     }
 
+    /**
+     * Gets marker symbol.
+     *
+     * @param num the num
+     * @return the marker symbol
+     */
     private String getMarkerSymbol(int num) {
         String result;
         if (num < 0 || num > 255) {

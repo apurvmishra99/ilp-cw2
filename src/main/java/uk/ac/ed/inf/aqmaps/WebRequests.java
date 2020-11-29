@@ -19,34 +19,68 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The type Web requests.
+ */
 public class WebRequests {
 
+    /**
+     * The constant client.
+     */
     private static final HttpClient client = HttpClient.newHttpClient();
+    /**
+     * The Host.
+     */
     private final String host;
+    /**
+     * The Port.
+     */
     private final int port;
 
+    /**
+     * Instantiates a new Web requests.
+     */
     public WebRequests() {
         this("http://localhost", 80);
 //    System.out.println(
 //        "Using default host(http://localhost) and port(80) as no host and port supplied.");
     }
 
+    /**
+     * Instantiates a new Web requests.
+     *
+     * @param host the host
+     */
     public WebRequests(String host) {
         this(host, 80);
 //    System.out.println("Using default port 80 as no port supplied.");
     }
 
+    /**
+     * Instantiates a new Web requests.
+     *
+     * @param port the port
+     */
     public WebRequests(int port) {
         this("http://localhost", port);
 //    System.out.println("Using default host(http://localhost) as no host supplied.");
     }
 
+    /**
+     * Instantiates a new Web requests.
+     *
+     * @param host the host
+     * @param port the port
+     */
     public WebRequests(String host, int port) {
         this.host = host;
         this.port = port;
         checkConnection();
     }
 
+    /**
+     * Check connection.
+     */
     private void checkConnection() {
         try {
             var request =
@@ -65,6 +99,13 @@ public class WebRequests {
         }
     }
 
+    /**
+     * Gets buidings.
+     *
+     * @return the buidings
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
     public ArrayList<ArrayList<Point2D>> getBuidings()
             throws IOException, InterruptedException {
 
@@ -102,6 +143,14 @@ public class WebRequests {
         return noFlyZones;
     }
 
+    /**
+     * Gets maps.
+     *
+     * @param path the path
+     * @return the maps
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
     public ArrayList<Sensor> getMaps(String path) throws IOException, InterruptedException {
 
         // Get air-quality-data JSON file from the server.
@@ -129,6 +178,15 @@ public class WebRequests {
         return sensorList;
     }
 
+    /**
+     * Gets words.
+     *
+     * @param path       the path
+     * @param coordsOnly the coords only
+     * @return the words
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
     public Point2D.Double getWords(String path, boolean coordsOnly)
             throws IOException, InterruptedException {
 
@@ -150,6 +208,14 @@ public class WebRequests {
         return new Point2D.Double(words.getCoordinates().getLng(), words.getCoordinates().getLat());
     }
 
+    /**
+     * Gets words.
+     *
+     * @param path the path
+     * @return the words
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
     public Words getWords(String path) throws IOException, InterruptedException {
 
         // Get the details.json file for given path.
