@@ -5,7 +5,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 /**
- * The type Geometry helpers.
+ * The utility class with helpers to deal with shapes and boundaries on the map.
  */
 public class GeometryHelpers {
 
@@ -26,14 +26,14 @@ public class GeometryHelpers {
      */
     private static final double WEST_LNG = -3.192473;
     /**
-     * The Polygon points arr.
+     * The list of lists of points defining the no-fly zones.
      */
     private static ArrayList<ArrayList<Point2D>> polygonPointsArr;
 
     /**
      * Instantiates a new Geometry helpers.
      *
-     * @param polygonPointsArr the polygon points arr
+     * @param polygonPointsArr the list of lists of points defining the no-fly zones.
      */
     public GeometryHelpers(ArrayList<ArrayList<Point2D>> polygonPointsArr) {
         super();
@@ -41,10 +41,12 @@ public class GeometryHelpers {
     }
 
     /**
-     * Polygon line intersects int.
+     * This method checks if a line intersects with any of the no-fly zones.
+     * If it doesn't we return -1, else we find the slope of the line we intersected
+     * and return it.
      *
      * @param line the line
-     * @return the int
+     * @return the angle of new movement or -1
      */
     public static int polygonLineIntersects(Line2D.Double line) {
 
@@ -73,13 +75,14 @@ public class GeometryHelpers {
     }
 
     /**
-     * Find movement angle int.
+     * Find a movement angle (in degrees )from point A to B.
+     * The returned angle is rounded off to its nearest 10.
      *
-     * @param X1 the x 1
-     * @param Y1 the y 1
-     * @param X2 the x 2
-     * @param Y2 the y 2
-     * @return the int
+     * @param X1 the x coordinate of point A
+     * @param Y1 the y coordinate of point A
+     * @param X2 the x coordinate of point B
+     * @param Y2 the y coordinate of point B
+     * @return the angle between them rounded to the nearest 10
      */
     public static int findMovementAngle(Double X1, Double Y1, Double X2, Double Y2) {
         var dX = X2 - X1;
@@ -93,10 +96,10 @@ public class GeometryHelpers {
     }
 
     /**
-     * In play area boolean.
+     * This method checks if a point is in the play area.
      *
-     * @param targetCoords the target coords
-     * @return the boolean
+     * @param targetCoords the point to check
+     * @return true if inside else false
      */
     public static boolean inPlayArea(Point2D targetCoords) {
         return (targetCoords.getY() > SOUTH_LAT

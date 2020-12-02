@@ -12,25 +12,25 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 /**
- * The type Geo json helper.
+ * The utility class with methods to generate GeoJSON features.
  */
 public class GeoJsonHelper {
 
     /**
-     * The Range to rgb.
+     * The map of readings to rgb value.
      */
     private final NavigableMap<Integer, String> RANGE_TO_RGB;
     /**
-     * The Range to symbol.
+     * The map of readings to symbol.
      */
     private final NavigableMap<Integer, String> RANGE_TO_SYMBOL;
     /**
-     * The Geojson map.
+     * The GeoJSON representation of the map with all features.
      */
     private FeatureCollection geojsonMap;
 
     /**
-     * Instantiates a new Geo json helper.
+     * Instantiates a new GeoJSON helper.
      */
     public GeoJsonHelper() {
         RANGE_TO_RGB = new TreeMap<>();
@@ -49,24 +49,29 @@ public class GeoJsonHelper {
     }
 
     /**
-     * Write to file.
+     * Writes the created GeoJSON map to a given filename.
      *
      * @param fileName the file name
      */
     public void writeToFile(String fileName) {
+        if (this.geojsonMap == null) {
+            System.err.println("The GeoJSON map has not been created yet.");
+            System.exit(1);
+        }
         try (FileWriter file = new FileWriter(fileName)) {
             file.write(this.geojsonMap.toJson());
             file.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("There was an error in writing the GeoJSON file to the given filename: " + fileName);
+            System.exit(1);
         }
     }
 
     /**
-     * Create geo json map.
+     * Create a GeoJSON map of type {@link FeatureCollection} and store it in the geojsonMap field.
      *
-     * @param sensors       the sensors
-     * @param movePointList the move point list
+     * @param sensors       the list of visited and unvisited sensors by the drone
+     * @param movePointList the list of points in which drone moved (in order)
      */
     public void createGeoJsonMap(
             ArrayList<Sensor> sensors, ArrayList<Point> movePointList) {
@@ -77,10 +82,10 @@ public class GeoJsonHelper {
     }
 
     /**
-     * Generate geo json markers array list.
+     * Generates a list GeoJSON markers from a list of sensors.
      *
-     * @param sensors the sensors
-     * @return the array list
+     * @param sensors the list of visited and unvisited sensors by the drone
+     * @return the array list of GeoJSON features
      */
     private ArrayList<Feature> generateGeoJsonMarkers(ArrayList<Sensor> sensors) {
         var features = new ArrayList<Feature>();
@@ -121,33 +126,33 @@ public class GeoJsonHelper {
     }
 
     /**
-     * Gets rgb string.
+     * Gets rgb string for the reading value.
      *
-     * @param num the num
+     * @param reading the reading
      * @return the rgb string
      */
-    private String getRGBString(int num) {
+    private String getRGBString(int reading) {
         String result;
-        if (num < 0 || num > 255) {
+        if (reading < 0 || reading > 255) {
             result = "#000000";
         } else {
-            result = RANGE_TO_RGB.floorEntry(num).getValue();
+            result = RANGE_TO_RGB.floorEntry(reading).getValue();
         }
         return result;
     }
 
     /**
-     * Gets marker symbol.
+     * Gets marker symbol for the reading value.
      *
-     * @param num the num
+     * @param reading the reading
      * @return the marker symbol
      */
-    private String getMarkerSymbol(int num) {
+    private String getMarkerSymbol(int reading) {
         String result;
-        if (num < 0 || num > 255) {
+        if (reading < 0 || reading > 255) {
             result = "cross";
         } else {
-            result = RANGE_TO_SYMBOL.floorEntry(num).getValue();
+            result = RANGE_TO_SYMBOL.floorEntry(reading).getValue();
         }
         return result;
     }

@@ -1,7 +1,7 @@
 package uk.ac.ed.inf.aqmaps;
 
 /**
- * The type Words.
+ * This class is used to parse JSON received from HTTP requests.
  */
 public class Words {
     /**

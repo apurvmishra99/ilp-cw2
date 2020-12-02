@@ -3,30 +3,29 @@ package uk.ac.ed.inf.aqmaps;
 import java.awt.geom.Point2D;
 
 /**
- * The type Sensor.
+ * The Sensor class to parse the JSON response from http requests,
+ * and to store its coordinates, and visit status.
  */
 public class Sensor {
     /**
-     * The Location.
+     * The W3W location name.
      */
     private final String location;
     /**
-     * The Battery.
+     * The battery level.
      */
     private final double battery;
     /**
-     * The Reading.
+     * The air quality reading.
      */
     private final String reading;
     /**
-     * The Coord.
+     * Centre point of sensor which our drone is going to aim for.
      */
-// Centre point of sensor which our drone is going to aim for.
     private Point2D coord;
     /**
-     * The Visited.
+     * Flag to check if the sensor has been visited
      */
-// Flag to check if the sensor has been visited
     private boolean visited = false;
 
     /**

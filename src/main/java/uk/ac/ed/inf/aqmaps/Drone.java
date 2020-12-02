@@ -2,7 +2,6 @@ package uk.ac.ed.inf.aqmaps;
 
 import com.mapbox.geojson.Point;
 
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,65 +12,52 @@ import java.util.Collections;
 import java.util.Random;
 
 /**
- * The type Drone.
+ * This class is used to make and run our autonomous drone.
+ * It holds the movement algorithm and related helper functions.
  */
-public class Drone {
+public abstract class Drone {
     /**
-     * The Seed.
+     * The seed value for the random number generator.
      */
-    private final int seed;
+    protected final int seed;
     /**
-     * The Rng.
+     * The Random Number Generator.
      */
-    private final Random RNG;
+    protected final Random RNG;
     /**
-     * The No fly zones array list.
+     * The Path value for the flightPathLog.
      */
-    private final ArrayList<ArrayList<Point2D>> noFlyZonesArrayList;
+    protected final Path flightPathLogFile;
     /**
-     * The Flight path log file.
+     * The number of moves left.
      */
-    private final Path flightPathLogFile;
+    protected int movesLeft;
     /**
-     * The Moves left.
+     * The list of sensors to visit.
      */
-    private int movesLeft;
+    protected ArrayList<Sensor> toVisit;
     /**
-     * The To visit.
+     * The starting position co-ordinates.
      */
-    private ArrayList<Sensor> toVisit;
+    protected Point2D startingPosition;
     /**
-     * The Visited sensors.
+     * The current position co-ordinates.
      */
-    private ArrayList<Sensor> visitedSensors;
-    /**
-     * The Starting position.
-     */
-    private Point2D startingPosition;
-    /**
-     * The Current position.
-     */
-    private Point2D currentPosition;
-    /**
-     * The Prev movement angle.
-     */
-    private int prevMovementAngle;
+    protected Point2D currentPosition;
 
     /**
-     * Instantiates a new Drone.
+     * Initializes the values for the fields of drone class.
      *
-     * @param seed                the seed
-     * @param movesLeft           the moves left
-     * @param toVisit             the to visit
-     * @param noFlyZonesArrayList the no fly zones array list
-     * @param startingPosition    the starting position
-     * @param flightPathLogFile   the flight path log file
+     * @param seed              the seed
+     * @param movesLeft         the moves left, i.e. the max number of moves the drone can make
+     * @param toVisit           the list of sensors to visit
+     * @param startingPosition  the starting position
+     * @param flightPathLogFile the path of flightPathLog file
      */
     public Drone(
             int seed,
             int movesLeft,
             ArrayList<Sensor> toVisit,
-            ArrayList<ArrayList<Point2D>> noFlyZonesArrayList,
             Point2D startingPosition,
             Path flightPathLogFile) {
         super();
@@ -79,125 +65,38 @@ public class Drone {
         this.RNG = new Random(seed);
         this.movesLeft = movesLeft;
         this.toVisit = toVisit;
-        this.visitedSensors = new ArrayList<>();
         this.startingPosition = startingPosition;
         this.currentPosition = startingPosition;
-        this.prevMovementAngle = -1;
-        this.noFlyZonesArrayList = noFlyZonesArrayList;
         this.flightPathLogFile = flightPathLogFile;
     }
 
     /**
-     * Collect readings array list.
+     * <p>
+     * This method is required to be implemented by the subclasses of the Drone class.
+     * The implementation of the movement algorithm decides our movement on the map
+     * and how we collect the readings from sensors.
+     * </p>
      *
-     * @return the array list
+     * @return the array list of type Mapbox.Geojson.Point with points the drone visits (in order)
      */
-    public ArrayList<Point> collectReadings() {
-        GeometryHelpers.setPolygonPointsArr(noFlyZonesArrayList);
-        var pointList = new ArrayList<Point>();
-        // add starting position
-        pointList.add(Point.fromLngLat(this.startingPosition.getX(), this.startingPosition.getY()));
-
-        // track if the drone is continuously intersecting the no-fly zones
-        var intersectionLoopCount = 0;
-
-        var nearestSensor = this.findNearestSensor();
-        var movementAngle = this.selectMovementAngle(nearestSensor);
-
-        while (this.movesLeft > 0) {
-            if (this.toVisit.size() > 0) {
-                var nextCoords = this.nextPosition(movementAngle);
-                var moveLine = new Line2D.Double(this.currentPosition, nextCoords);
-
-                // if intersectAngle == -1 then the move does not go over a no fly zone
-                // else we get the slope of the side we intersect to change our angle to
-                var intersectAngle = GeometryHelpers.polygonLineIntersects(moveLine);
-                var inPlayArea = GeometryHelpers.inPlayArea(nextCoords);
-
-                if (intersectAngle == -1 && inPlayArea) {
-                    var prevCoord = this.currentPosition;
-                    // move to next position
-                    this.setCurrentPosition(nextCoords);
-                    // check and do stuff if close to sensor
-                    var loc = this.closeToSensor();
-                    // set prev movement angle
-                    this.setPrevMovementAngle(movementAngle);
-                    // add movement to point list
-                    pointList.add(Point.fromLngLat(this.currentPosition.getX(), this.currentPosition.getY()));
-                    // log the movement
-                    logToFile(prevCoord, loc);
-                    // update for next move
-                    if (toVisit.size() > 0) {
-                        nearestSensor = this.findNearestSensor();
-                        movementAngle = this.selectMovementAngle(nearestSensor);
-                    }
-                } else if (intersectAngle != -1 && inPlayArea) {
-                    if (intersectAngle == movementAngle || this.prevMovementAngle == (intersectAngle + 180) % 360 || (++intersectionLoopCount) > 4) {
-                        movementAngle = this.randomMovementAngle();
-                        intersectionLoopCount = 0;
-                    } else {
-                        movementAngle = intersectAngle;
-                        intersectionLoopCount++;
-                    }
-                    continue;
-                } else {
-                    movementAngle = this.randomMovementAngle();
-                    continue;
-                }
-            } else {
-                if (this.visitedSensors.size() == 34) {
-                    this.visitedSensors.remove(33);
-                    System.out.println("Done!");
-                    break;
-                }
-                var startDummySensor = new Sensor("null", 0.0, "");
-                startDummySensor.setCoord(this.startingPosition);
-                this.toVisit.add(startDummySensor);
-                movementAngle = this.selectMovementAngle(startDummySensor);
-            }
-            // decrement the number of moves
-            this.movesLeft = this.movesLeft - 1;
-        }
-        return pointList;
-    }
+    public abstract ArrayList<Point> collectReadings();
 
     /**
-     * Find nearest sensor sensor.
+     * Find nearest sensor from the current location of the drone.
      *
-     * @return the sensor
+     * @return the closest sensor
      */
-    private Sensor findNearestSensor() {
+    protected Sensor findNearestSensor() {
         return Collections.min(toVisit, new DistanceComparator(this.currentPosition));
     }
 
     /**
-     * Select movement angle int.
-     *
-     * @param nearestSensor the nearest sensor
-     * @return the int
-     */
-    private int selectMovementAngle(Sensor nearestSensor) {
-        var nearestSensorCoord = nearestSensor.getCoord();
-        var movementAngle =
-                GeometryHelpers.findMovementAngle(
-                        this.currentPosition.getX(), this.currentPosition.getY(),
-                        nearestSensorCoord.getX(), nearestSensorCoord.getY());
-        var oppMovementAngle = (movementAngle + 180) % 360;
-        if (this.prevMovementAngle == oppMovementAngle) {
-            // If the drone is stuck in an oscillation a random direction is selected
-            movementAngle = this.randomMovementAngle();
-        }
-
-        return movementAngle;
-    }
-
-    /**
-     * Next position point 2 d . double.
+     * Calculate the next position of the drone based on the movement angle selected.
      *
      * @param movementAngle the movement angle
-     * @return the point 2 d . double
+     * @return the next position co-ordinates as a Point2D object
      */
-    private Point2D.Double nextPosition(int movementAngle) {
+    protected Point2D nextPosition(int movementAngle) {
         var radianAngle = Math.toRadians(movementAngle);
         // It moves by a distance of 0.0003 degrees
         return new Point2D.Double(
@@ -206,53 +105,28 @@ public class Drone {
     }
 
     /**
-     * Close to sensor string.
+     * This method logs each of the drone steps to a file.
      *
-     * @return the string
+     * @param prevCoord the prev position of the drone
+     * @param moveAngle the angle of the drone movement
+     * @param loc       the w3w location or "null"
      */
-    private String closeToSensor() {
-        var sensor = findNearestSensor();
-        var dist = this.currentPosition.distance(sensor.getCoord());
-        if ((sensor.getLocation().equals("null") && dist < 0.0003) || dist < 0.0002) {
-            sensor.setVisited(true);
-            toVisit.remove(sensor);
-            visitedSensors.add(sensor);
-            return sensor.getLocation();
-        }
-        return "null";
-    }
-
-    /**
-     * Log to file.
-     *
-     * @param prevCoord the prev coord
-     * @param loc       the loc
-     */
-    private void logToFile(Point2D prevCoord, String loc) {
+    protected void logToFile(Point2D prevCoord, int moveAngle, String loc) {
         var logMessage =
                 String.format(
                         "%d, %f, %f, %d, %f, %f, %s\n",
                         150 - this.movesLeft + 1,
                         prevCoord.getX(),
                         prevCoord.getY(),
-                        this.prevMovementAngle,
+                        moveAngle,
                         this.currentPosition.getX(),
                         this.currentPosition.getY(),
                         loc);
         try {
             Files.writeString(this.flightPathLogFile, logMessage, StandardOpenOption.APPEND);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not write " + logMessage + "to log file.");
         }
-    }
-
-    /**
-     * Random movement angle int.
-     *
-     * @return the int
-     */
-    private int randomMovementAngle() {
-        return this.RNG.nextInt(36) * 10;
     }
 
     /**
@@ -325,42 +199,6 @@ public class Drone {
      */
     public void setCurrentPosition(Point2D currentPosition) {
         this.currentPosition = currentPosition;
-    }
-
-    /**
-     * Gets visited sensors.
-     *
-     * @return the visited sensors
-     */
-    public ArrayList<Sensor> getVisitedSensors() {
-        return visitedSensors;
-    }
-
-    /**
-     * Sets visited sensors.
-     *
-     * @param visitedSensors the visited sensors
-     */
-    public void setVisitedSensors(ArrayList<Sensor> visitedSensors) {
-        this.visitedSensors = visitedSensors;
-    }
-
-    /**
-     * Gets prev movement angle.
-     *
-     * @return the prev movement angle
-     */
-    public int getPrevMovementAngle() {
-        return prevMovementAngle;
-    }
-
-    /**
-     * Sets prev movement angle.
-     *
-     * @param prevMovementAngle the prev movement angle
-     */
-    public void setPrevMovementAngle(int prevMovementAngle) {
-        this.prevMovementAngle = prevMovementAngle;
     }
 
     /**

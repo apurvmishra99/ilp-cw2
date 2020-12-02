@@ -4,12 +4,12 @@ import java.awt.geom.Point2D;
 import java.util.Comparator;
 
 /**
- * The type Distance comparator.
+ * The Distance comparator.
  */
 public class DistanceComparator implements Comparator<Sensor> {
 
     /**
-     * The Ref point.
+     * The Ref point to calculate distance of sensors from.
      */
     private final Point2D refPoint;
 
@@ -24,11 +24,11 @@ public class DistanceComparator implements Comparator<Sensor> {
     }
 
     /**
-     * Compare int.
+     * Compare the distance of two sensors from refPoint.
      *
-     * @param s1 the s 1
-     * @param s2 the s 2
-     * @return the int
+     * @param s1 the first sensor
+     * @param s2 the second sensor
+     * @return a value in [-1, 0, 1] showing which sensor is further
      */
     @Override
     public int compare(Sensor s1, Sensor s2) {

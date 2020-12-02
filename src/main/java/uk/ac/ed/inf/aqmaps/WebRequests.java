@@ -14,26 +14,28 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * The type Web requests.
+ * The Web requests class contains methods to do the required HTTP requests
+ * and parse the JSON responses appropriately to Java objects.
  */
 public class WebRequests {
 
     /**
-     * The constant client.
+     * The HTTP client.
      */
     private static final HttpClient client = HttpClient.newHttpClient();
     /**
-     * The Host.
+     * The host.
      */
     private final String host;
     /**
-     * The Port.
+     * The port.
      */
     private final int port;
 
@@ -42,28 +44,6 @@ public class WebRequests {
      */
     public WebRequests() {
         this("http://localhost", 80);
-//    System.out.println(
-//        "Using default host(http://localhost) and port(80) as no host and port supplied.");
-    }
-
-    /**
-     * Instantiates a new Web requests.
-     *
-     * @param host the host
-     */
-    public WebRequests(String host) {
-        this(host, 80);
-//    System.out.println("Using default port 80 as no port supplied.");
-    }
-
-    /**
-     * Instantiates a new Web requests.
-     *
-     * @param port the port
-     */
-    public WebRequests(int port) {
-        this("http://localhost", port);
-//    System.out.println("Using default host(http://localhost) as no host supplied.");
     }
 
     /**
@@ -79,44 +59,54 @@ public class WebRequests {
     }
 
     /**
-     * Check connection.
+     * Instantiates a new Web requests.
+     *
+     * @param host the host
+     */
+    public WebRequests(String host) {
+        this(host, 80);
+    }
+
+    /**
+     * Instantiates a new Web requests.
+     *
+     * @param port the port
+     */
+    public WebRequests(int port) {
+        this("http://localhost", port);
+    }
+
+    /**
+     * Checks if a connection can be established to given host and port.
      */
     private void checkConnection() {
         try {
             var request =
                     HttpRequest.newBuilder().uri(URI.create(this.host + ":" + this.port + "/")).build();
             var response = client.send(request, BodyHandlers.ofString());
-            var status = response.statusCode();
-//      System.out.println("Got response code: " + status + ", connection to server established.");
-        } catch (ConnectException e) {
-            System.out.println(
-                    "Fatal error: Unable to connect to " + this.host + " at port " + this.port + ".");
-            System.exit(1); // Exit the application
+        } catch (ConnectException | InterruptedException e) {
+            System.err.println(
+                    "Unable to connect to " + this.host + " at port " + this.port + ".");
+            System.exit(1);
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            checkConnection();
+            System.err.println(
+                    "IO Exception while connecting to " + this.host + " at port " + this.port + ".");
+            System.exit(1);
         }
+
     }
 
     /**
-     * Gets buidings.
+     * Get the no-fly zones on the map.
      *
-     * @return the buidings
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
+     * @return the list of list of points defining each no-fly zone
      */
-    public ArrayList<ArrayList<Point2D>> getBuidings()
-            throws IOException, InterruptedException {
-
+    public ArrayList<ArrayList<Point2D>> getBuidings() {
         var request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(this.host + ":" + this.port + "/buildings/no-fly-zones.geojson"))
                         .build();
-        var response = client.send(request, BodyHandlers.ofString());
-
-        var geoJsonString = response.body();
-
+        var geoJsonString = safeGET(request);
         // Creating a list of features
         FeatureCollection fc = FeatureCollection.fromJson(geoJsonString);
         List<Feature> fcList = fc.features();
@@ -144,14 +134,30 @@ public class WebRequests {
     }
 
     /**
-     * Gets maps.
+     * This method does a get request safely while handling any exceptions..
      *
-     * @param path the path
-     * @return the maps
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
+     * @param request the request object
+     * @return the string of the response
      */
-    public ArrayList<Sensor> getMaps(String path) throws IOException, InterruptedException {
+    private String safeGET(HttpRequest request) {
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Exception while connecting to " + this.host + " at port " + this.port + ".");
+            System.exit(1);
+        }
+
+        return response.body();
+    }
+
+    /**
+     * Gets map for the given date.
+     *
+     * @param path the w3w location
+     * @return the list of {@link Sensor} to visit
+     */
+    public ArrayList<Sensor> getMaps(String path) {
 
         // Get air-quality-data JSON file from the server.
         var request =
@@ -159,9 +165,7 @@ public class WebRequests {
                         .uri(
                                 URI.create(this.host + ":" + this.port + "/maps/" + path + "air-quality-data.json"))
                         .build();
-        var response = client.send(request, BodyHandlers.ofString());
-
-        var geoJsonString = response.body();
+        var geoJsonString = safeGET(request);
 
         // Deserialise JSON Array to an ArrayList of AirQualityData
         Type targetClassType = new TypeToken<ArrayList<Sensor>>() {
@@ -179,17 +183,13 @@ public class WebRequests {
     }
 
     /**
-     * Gets words.
+     * Gets details of the W3W location word.
      *
-     * @param path       the path
-     * @param coordsOnly the coords only
-     * @return the words
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
+     * @param path       the w3w lcoation
+     * @param coordsOnly the boolean flag
+     * @return the coordinates of the {@link Sensor}
      */
-    public Point2D.Double getWords(String path, boolean coordsOnly)
-            throws IOException, InterruptedException {
-
+    public Point2D.Double getWords(String path, boolean coordsOnly) {
         if (!coordsOnly) {
             getWords(path);
         }
@@ -198,9 +198,7 @@ public class WebRequests {
                 HttpRequest.newBuilder()
                         .uri(URI.create(this.host + ":" + this.port + "/words/" + path + "/details.json"))
                         .build();
-        var response = client.send(request, BodyHandlers.ofString());
-
-        var jsonString = response.body();
+        var jsonString = safeGET(request);
 
         // Deserialising the fetched JSON file.
         var words = new Gson().fromJson(jsonString, Words.class);
@@ -209,23 +207,19 @@ public class WebRequests {
     }
 
     /**
-     * Gets words.
+     * Gets details of the W3W location word.
      *
-     * @param path the path
-     * @return the words
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
+     * @param path the w3w lcoation
+     * @return the object of class words with deserialised json details
      */
-    public Words getWords(String path) throws IOException, InterruptedException {
+    public Words getWords(String path) {
 
         // Get the details.json file for given path.
         var request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(this.host + ":" + this.port + "/words/" + path + "/details.json"))
                         .build();
-        var response = client.send(request, BodyHandlers.ofString());
-
-        var jsonString = response.body();
+        var jsonString = safeGET(request);
 
         // Deserialising the fetched JSON file.
 
