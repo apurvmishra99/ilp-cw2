@@ -114,7 +114,7 @@ public abstract class Drone {
     protected void logToFile(Point2D prevCoord, int moveAngle, String loc) {
         var logMessage =
                 String.format(
-                        "%d, %f, %f, %d, %f, %f, %s\n",
+                        "%d,%f,%f,%d,%f,%f,%s\n",
                         150 - this.movesLeft + 1,
                         prevCoord.getX(),
                         prevCoord.getY(),

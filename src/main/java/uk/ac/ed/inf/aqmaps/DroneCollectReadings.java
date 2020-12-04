@@ -8,9 +8,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 /**
- * The type Drone collect readings.
+ * The {@link DroneCollectReadings} class extends {@link Drone} and implements a
+ * sensor reading collection algorithm. We use the object of this class to collect
+ * readings.
  */
-public class DroneCollectReadings extends Drone {
+ public class DroneCollectReadings extends Drone {
     /**
      * The list of list of points of all the no-fly zones on the map.
      */
@@ -25,7 +27,7 @@ public class DroneCollectReadings extends Drone {
     private int prevMovementAngle;
 
     /**
-     * Instantiates a new Drone.
+     * Instantiates a new Drone with sensor reading collection algorithm.
      *
      * @param seed                the seed
      * @param movesLeft           the moves left, i.e. the max number of moves the drone can make
@@ -109,10 +111,10 @@ public class DroneCollectReadings extends Drone {
                     continue;
                 }
             } else {
-                if (this.visitedSensors.size() == 34) {
+                if (this.visitedSensors.size() == GeometryHelpers.NUM_OF_SENSORS + 1) {
                     // All sensors visited and the drone is back at the starting position.
-                    this.visitedSensors.remove(33);
-                    System.out.println("Done!");
+                    this.visitedSensors.remove(GeometryHelpers.NUM_OF_SENSORS);
+                    System.out.println("Collected all the readings successfully! Retrieve from the starting location.");
                     break;
                 }
                 /*
@@ -162,7 +164,7 @@ public class DroneCollectReadings extends Drone {
     private String closeToSensor() {
         var sensor = findNearestSensor();
         var dist = this.currentPosition.distance(sensor.getCoord());
-        if ((sensor.getLocation().equals("null") && dist < 0.0003) || dist < 0.0002) {
+        if ((sensor.getLocation().equals("null") && dist < GeometryHelpers.MOVEMENT_RADIUS) || dist < GeometryHelpers.READING_DISTANCE) {
             sensor.setVisited(true);
             toVisit.remove(sensor);
             visitedSensors.add(sensor);

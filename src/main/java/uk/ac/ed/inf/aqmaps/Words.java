@@ -1,7 +1,7 @@
 package uk.ac.ed.inf.aqmaps;
 
 /**
- * This class is used to parse JSON received from HTTP requests.
+ * This is a simple class used to parse JSON for the exact location details of sensor. It contains two nested static classes to help with parsing the nested JSON fully.
  */
 public class Words {
     /**

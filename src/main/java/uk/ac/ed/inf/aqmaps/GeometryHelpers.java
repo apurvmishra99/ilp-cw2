@@ -10,21 +10,36 @@ import java.util.ArrayList;
 public class GeometryHelpers {
 
     /**
+     * The constant radius of drones movement.
+     */
+    public static final double MOVEMENT_RADIUS = 0.0003;
+
+    /**
+     * The constant distance from which a reading can be taken.
+     */
+    public static final double READING_DISTANCE = 0.0002;
+
+    /**
+     * The constant number of total number of sensors on the map.
+     */
+    public static final int NUM_OF_SENSORS = 33;
+
+    /**
      * The constant NORTH_LAT.
      */
-    private static final double NORTH_LAT = 55.946233;
+    public static final double NORTH_LAT = 55.946233;
     /**
      * The constant SOUTH_LAT.
      */
-    private static final double SOUTH_LAT = 55.942617;
+    public static final double SOUTH_LAT = 55.942617;
     /**
      * The constant EAST_LNG.
      */
-    private static final double EAST_LNG = -3.184319;
+    public static final double EAST_LNG = -3.184319;
     /**
      * The constant WEST_LNG.
      */
-    private static final double WEST_LNG = -3.192473;
+    public static final double WEST_LNG = -3.192473;
     /**
      * The list of lists of points defining the no-fly zones.
      */
@@ -48,7 +63,7 @@ public class GeometryHelpers {
      * @param line the line
      * @return the angle of new movement or -1
      */
-    public static int polygonLineIntersects(Line2D.Double line) {
+    public static int polygonLineIntersects(Line2D line) {
 
         for (ArrayList<Point2D> polygonPoints : polygonPointsArr) {
             for (int i = 0; i < polygonPoints.size() - 1; i++) {
@@ -84,7 +99,7 @@ public class GeometryHelpers {
      * @param Y2 the y coordinate of point B
      * @return the angle between them rounded to the nearest 10
      */
-    public static int findMovementAngle(Double X1, Double Y1, Double X2, Double Y2) {
+    public static int findMovementAngle(double X1, double Y1, double X2, double Y2) {
         var dX = X2 - X1;
         var dY = Y2 - Y1;
         var radians = Math.atan2(dY, dX);
@@ -124,42 +139,6 @@ public class GeometryHelpers {
      */
     public static void setPolygonPointsArr(ArrayList<ArrayList<Point2D>> polygonPointsArr) {
         GeometryHelpers.polygonPointsArr = polygonPointsArr;
-    }
-
-    /**
-     * Gets north lat.
-     *
-     * @return the north lat
-     */
-    public static double getNorthLat() {
-        return NORTH_LAT;
-    }
-
-    /**
-     * Gets south lat.
-     *
-     * @return the south lat
-     */
-    public static double getSouthLat() {
-        return SOUTH_LAT;
-    }
-
-    /**
-     * Gets east lng.
-     *
-     * @return the east lng
-     */
-    public static double getEastLng() {
-        return EAST_LNG;
-    }
-
-    /**
-     * Gets west lng.
-     *
-     * @return the west lng
-     */
-    public static double getWestLng() {
-        return WEST_LNG;
     }
 
 }
